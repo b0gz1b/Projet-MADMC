@@ -210,7 +210,7 @@ class NDTreeNode:
 		Gives a string representation of the ND-Tree node.
 		:return: a string representation of the ND-Tree node
 		"""
-		return "NDTreeNode({}, |S|={}, |children|={}, ideal={}, nadir={})".format("leaf" if self.is_leaf() else "internal",len(self.S),len(self.children), self.ideal, self.nadir)
+		return "NDTreeNode({}, |S|={}, |L|={}, |children|={}, ideal={}, nadir={})".format("leaf" if self.is_leaf() else "internal",len(self.S),len(self.L),len(self.children), self.ideal, self.nadir)
 
 	def is_leaf(self) -> bool:
 		"""
@@ -230,25 +230,32 @@ class NDTreeNode:
 			If the current node is a leaf, then the new point is compared to every point in L(n).
 			If y is dominated by a point in L(n), then y is rejected, else if y dominates a point in L(n), then the dominated point is deleted from L(n).
 		:param y: the new point
+		:param verbose: True if the procedure should be verbose, False otherwise
 		:return: True if the point is accepted, False otherwise
 		"""
 		if verbose:
-			print("Updating node {} with point {}".format(self, y))
+			print("-----Updating node with point {}".format(y))
 		if self.nadir.covers(y):
 			# Property 1, y is covered by the approximate nadir point so it is rejected
 			if verbose:
-				print("Point {} is covered by the approximate nadir point {}".format(y, self.nadir))
+				print("Point is covered by the approximate nadir point")
 			return False
 		elif y.covers(self.ideal):
 			# Property 2, y covers the approximate ideal point so the node is deleted
 			if verbose:
-				print("Point {} covers the approximate ideal point {}".format(y, self.ideal))
-			self.prune_yourself()
+				print("Point covers the approximate ideal point")
+			if self.parent is not None:
+				self.prune_yourself()
+			else:
+				self.children = []
+				self.S = []
+				self.L = []
 		elif self.ideal.covers(y) or y.covers(self.nadir):
 			if verbose:
-				print("Point {} is covered by the approximate ideal point {} or covers the approximate nadir point {}".format(y, self.ideal, self.nadir))
+				print("Point is covered by the approximate ideal point or covers the approximate nadir point")
 			if self.is_leaf():
-				print("Case : Leaf node")
+				if verbose:
+					print("Case : Leaf node")
 				to_be_pruned = []
 				for z in self.L:
 					if z.covers(y):
@@ -261,10 +268,11 @@ class NDTreeNode:
 						if verbose:
 							print("Point {} dominates point {}, deletion".format(y, z))
 						to_be_pruned.append(z)
-						self.L.remove(z)
+						
 				# we pass on the list of points to be pruned to the parent node too
 				if verbose:
-					print("Pruning points: {}".format([str(tbp) for tbp in to_be_pruned]))
+					for tbp in to_be_pruned:
+						self.L.remove(tbp)
 				self.update_S_pruning(to_be_pruned)
 			else:
 				if verbose:
@@ -272,25 +280,25 @@ class NDTreeNode:
 				removed_children = []
 				for child in self.children:
 					if verbose:
-						print("Updating child node {}".format(child))
+						print("Updating child node")
 					if not child.update_node(y, verbose=verbose):
 						# y is rejected by a child node so it is rejected
 						if verbose:
-							print("Point {} is rejected by child node {}".format(y, child))
+							print("Point is rejected by child node")
 						return False
 					else:
-						if child.parent == None:
+						if child.parent == None or len(child.S) == 0:
 							if verbose:
-								print("Child node {} is pruned".format(child))
+								print("Child node is pruned")
 							# the child node was deleted so we delete it from the list of children
 							removed_children.append(child)
 				for child in removed_children:
 					if verbose:
-						print("Removing child node {} from parent node {}".format(child, self))
+						print("Removing child node from parent node")
 					self.children.remove(child)
 				if len(self.children) == 1:
 					if verbose:
-						print("Parent node {} has only one child node {} so it is replaced by this child node".format(self, self.children[0]))
+						print("Parent node has only one child node so it is replaced by this child node")
 					# the current node has only one child so it is replaced by this child
 					self.children[0].parent = self.parent
 					self.parent.children.remove(self)
@@ -298,23 +306,38 @@ class NDTreeNode:
 		else:
 			# Property 3, y is non dominated with respect to the approximate ideal point and approximate nadir point so y is non dominated with respect to S(n)
 			if verbose:
-				print("Point {} is non dominated with respect to the approximate ideal point {} and approximate nadir point {}, node is skipped".format(y, self.ideal, self.nadir))
+				print("Point is non dominated with respect to the approximate ideal point and approximate nadir point, node is skipped")
 			pass # We can skip this node
+		assert self.is_leaf() and len(self.S) == len(self.L) or (not self.is_leaf() and len(self.L) == 0) # DEBUG
 		return True
 	
-	def insert(self, y: DKPPoint) -> None:
+	def insert(self, y: DKPPoint, verbose=False) -> None:
 		"""
 		Inserts a new point in the ND-Tree.
 		:param y: the new point
+		:param verbose: True if the procedure should be verbose, False otherwise
 		"""
+		if verbose:
+			print("-----Inserting point {} in node {}".format(y, self))
 		if self.is_leaf():
+			if verbose:
+				print("Leaf node, insertion")
 			self.L.append(y)
 			self.S.append(y)
 			self.update_ideal_nadir(y)
 			if len(self.L) > self.tree.max_leaf_size:
+				if verbose:
+					print("Splitting node")
 				self.split()
+				if verbose:
+					print(self.tree.tree_form_representation())
 		else:
+			if verbose:
+				print("Internal node, finding the closest child")
 			self.S.append(y)
+			closest_child_index = self.find_closest_child_index(y)
+			self.children[closest_child_index].insert(y, verbose=verbose)
+		assert self.tree.is_pareto_front() # DEBUG
 
 
 	def split(self) -> None:
@@ -331,7 +354,7 @@ class NDTreeNode:
 				max_average_distance = average_distance
 				farthest_point_index = i
 		# Then we create a new child with this point
-		self.children.append(NDTreeNode(self.tree, [self.L[farthest_point_index]], [self.L[farthest_point_index]], self))
+		self.children.append(NDTreeNode(self.tree, [self.L[farthest_point_index]], [self.L[farthest_point_index]], parent=self, children=[]))
 		children_points.append(self.L.pop(farthest_point_index))
 		# Then, and until we have number_of_children children
 		while len(self.children) < self.tree.number_of_children:
@@ -344,7 +367,7 @@ class NDTreeNode:
 					max_average_distance = average_distance
 					farthest_point_index = i
 			# and we create a new child with this point
-			self.children.append(NDTreeNode(self.tree, [self.L[farthest_point_index]], [self.L[farthest_point_index]], self))
+			self.children.append(NDTreeNode(self.tree, [self.L[farthest_point_index]], [self.L[farthest_point_index]], parent=self, children=[]))
 			children_points.append(self.L.pop(farthest_point_index))
 		# Finally, we add the remaining points in L to their closest child
 		while len(self.L) > 0:
@@ -373,7 +396,7 @@ class NDTreeNode:
 		:param y: the new point
 		:return: the index of the closest child
 		"""
-		min_distance = 0
+		min_distance = np.inf
 		closest_child_index = 0
 		for i in range(len(self.children)):
 			distance = y.euclidean_distance(self.children[i].get_midde_point())
@@ -412,6 +435,18 @@ class NDTreeNode:
 		:return: the middle point of the current node
 		"""
 		return DPoint((self.ideal.value + self.nadir.value) / 2)
+	
+	def tree_form_representation(self, depth: int) -> str:
+		"""
+		Gives a tree form representation of the ND-Tree node.
+		:param depth: the depth of the current node
+		:return: a tree form representation of the ND-Tree node
+		"""
+		tree_str = ""
+		for child in self.children:
+			tree_str += "\t" * depth + "Child node: {}\n".format(child)
+			tree_str += child.tree_form_representation(depth + 1)
+		return tree_str
 
 
 class NDTree:
@@ -436,16 +471,117 @@ class NDTree:
 		self.max_leaf_size = max_leaf_size
 		self.root = None
 	
-	def update(self, y: DKPPoint, verbose = False) -> None:
+	def __str__(self) -> str:
+		"""
+		Gives a string representation of the ND-Tree.
+		:return: a string representation of the ND-Tree
+		"""
+		return "NDTree(d={}, number_of_children={}, max_leaf_size={})".format(self.d, self.number_of_children, self.max_leaf_size)
+
+	def tree_form_representation(self) -> str:
+		"""
+		Gives a tree form representation of the ND-Tree.
+		:return: a tree form representation of the ND-Tree
+		"""
+		if self.root is None:
+			return "Empty tree"
+		else:
+			tree_str = "Root node: {}\n".format(self.root)
+			tree_str += self.root.tree_form_representation(1)
+		return tree_str
+
+	def update(self, y: DKPPoint, verbose = False) -> bool:
 		"""
 		Updates the ND-Tree with a new point.
 		:param y: the new point
+		:param verbose: True if the procedure should be verbose, False otherwise
+		:return: True if the point is accepted, False otherwise
 		"""
 		if self.root is None:
 			if verbose:
 				print("Creating root node")
 			self.root = NDTreeNode(self, [y], [y])
+			return True
 		elif self.root.update_node(y, verbose=verbose):
 			if verbose:
 				print("Inserting point {} in ND tree".format(y))
-			self.root.insert(y)
+			self.root.insert(y, verbose=verbose)
+			return True
+		return False
+	
+	def is_pareto_front(self):
+		correct = True
+		if self.root is not None:
+			for i,x in enumerate(self.root.S[:-1]):
+				for j,y in enumerate(self.root.S[i+1:]):
+					if i != j:
+						if x.covers(y):
+							print("Inconsistency: {} covers {}".format(x,y))
+							correct = False
+						if y.covers(x):
+							print("Inconsistency: {} covers {}".format(y,x))
+							correct = False
+		return correct
+
+class NDList:
+	"""
+	ND-List data structure is a list of points that are non dominated with respect to each other.
+	"""
+	def	__init__(self, d: int) -> None:
+		"""
+		Constructor of the ND-List class.
+		:param d: the dimension of the problem
+		"""
+		self.d = d
+		self.points = []
+	
+	def __str__(self) -> str:
+		"""
+		Gives a string representation of the ND-List.
+		:return: a string representation of the ND-List
+		"""
+		return "NDList(d={}, |points|={})".format(self.d, len(self.points))
+	
+	def update(self, y: DKPPoint, verbose = False) -> bool:
+		"""
+		Updates the ND-List with a new point.
+		:param y: the new point
+		:param verbose: True if the procedure should be verbose, False otherwise
+		:return: True if the point is accepted, False otherwise
+		"""
+		if verbose:
+			print("-----Updating ND list with point {}".format(y))
+		if len(self.points) == 0:
+			if verbose:
+				print("ND list is empty, insertion")
+			self.points.append(y)
+		else:
+			to_be_removed = []
+			for i in range(len(self.points)):
+				if self.points[i].covers(y):
+					if verbose:
+						print("Point {} is covered by point {}, rejection".format(y, self.points[i]))
+					return False
+				if y.dominates(self.points[i]):
+					if verbose:
+						print("Point {} dominate point {}, deletion".format(y, self.points[i]))
+					to_be_removed.append(self.points[i])
+			for z in to_be_removed:
+				self.points.remove(z)
+			self.points.append(y)
+		assert self.is_pareto_front() # DEBUG
+		return True
+
+	def is_pareto_front(self):
+		correct = True
+		if self.points is not []:
+			for i,x in enumerate(self.points[:-1]):
+				for j,y in enumerate(self.points[i+1:]):
+					if i != j:
+						if x.covers(y):
+							print("Inconsistency: {} covers {}".format(x,y))
+							correct = False
+						if y.covers(x):
+							print("Inconsistency: {} covers {}".format(y,x))
+							correct = False
+		return correct
