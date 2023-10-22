@@ -2,11 +2,11 @@ import numpy as np
 from typing import List
 
 class InvalidFileFormatError(Exception):
-    """
+	"""
 	Raised when the file is not well formatted.
 	"""
-    def __init__(self):
-        super().__init__("First item line should not appear before both the 'n <number of items>' and 'c w v1 ... v<d> ' lines.")
+	def __init__(self):
+		super().__init__("First item line should not appear before both the 'n <number of items>' and 'c w v1 ... v<d> ' lines.")
 
 
 class DKP:
@@ -406,7 +406,7 @@ class NDTreeNode:
 		if self.parent is not None:
 			self.parent.update_S_pruning(to_be_pruned)
 	
-	def	get_midde_point(self) -> DPoint:
+	def get_midde_point(self) -> DPoint:
 		"""
 		Computes the middle point of the current node.
 		:return: the middle point of the current node
