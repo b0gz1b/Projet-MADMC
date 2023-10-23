@@ -1,4 +1,5 @@
 from dKP import *
+from PLS import *
 import numpy as np
 
 if __name__ == '__main__':
@@ -7,7 +8,7 @@ if __name__ == '__main__':
 	# Print the instance
 	print(dkp)
 	# Generate m random solutions
-	m = 500
+	m = 1000
 	solutions = []
 	for i in range(m):
 		solution = DKPPoint(dkp, dkp.generate_random_solution())
@@ -19,23 +20,24 @@ if __name__ == '__main__':
 	Yn = NDTree(dkp.d, number_of_children, max_leaf_size)
 	# Update the pareto front of the archive
 	for i in range(m):
-		Yn.update(solutions[i], verbose=True)
-	# Print the pareto front
-	print("Pareto front:")
-	for s in Yn.root.S:
-		print(s)
-	assert Yn.is_pareto_front()
-
+		Yn.update(solutions[i], verbose=False)
+	
 	# Print the tree form representation
 	print(Yn.tree_form_representation())
+	
+	assert Yn.is_pareto_front()
+
 
 	# Create the pareto front archive using a list
 	YnList = NDList(dkp.d)
 	# Update the pareto front of the archive
 	for i in range(m):
 		YnList.update(solutions[i], verbose=False)
-	# Print the pareto front
-	print("Pareto front:")
-	for s in YnList.points:
-		print(s)
+
 	assert YnList.is_pareto_front()
+	assert all([sol in YnList.points for sol in Yn.root.S]) and all([sol in Yn.root.S for sol in YnList.points])
+	# Test the copy method
+	Yncp = Yn.copy()
+
+	# Test the PLS algorithm
+	PLS(dkp, m)
