@@ -21,7 +21,7 @@ class NDList:
 		"""
 		return "NDList(d={}, |points|={})".format(self.d, len(self.points))
 	
-	def update(self, y: DKPPoint, verbose = False) -> bool:
+	def update(self, y: DKPPoint, verbose: bool = False) -> bool:
 		"""
 		Updates the ND-List with a new point.
 		:param y: the new point

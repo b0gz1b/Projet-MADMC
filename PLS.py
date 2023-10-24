@@ -32,7 +32,7 @@ def P0(dkp: DKP, m: int, verbose: bool = False) -> NDTree:
         p0.update(DKPPoint(dkp, solution, weight=solution_weight, value=solution_value), verbose=verbose)
     return p0
 
-def PLS(dkp: DKP, m: int, verbose: int = 0, struct: str = "NDTree") -> List[DKPPoint]:
+def PLS(dkp: DKP, m: int, verbose: int = 0, struct: str = "NDTree", initial_pop: NDTree = None) -> List[DKPPoint]:
     """
     Performs the pareto local search (PLS) algorithm on the instance of the problem
     :param dkp: the instance of the problem
@@ -41,18 +41,18 @@ def PLS(dkp: DKP, m: int, verbose: int = 0, struct: str = "NDTree") -> List[DKPP
     :return: the approximate pareto front
     """
     start = time.time()
-    initial_pop = P0(dkp, m) # Initial population
+    if initial_pop is None:
+        initial_pop = P0(dkp, m) # Initial population
     if struct == "NDList":
         initial_pop = NDList(dkp.d, initial_pop.get_pareto_front())
-    if verbose != 0:
-        print("Initial population of size", len(initial_pop.get_pareto_front()), "generated")
     efficient_set_approx = initial_pop.copy() # Pareto front archive
     current_pop = initial_pop.copy() # Current population
     if struct == "NDTree":
         aux_pop = NDTree(dkp.d, NUMBER_OF_CHILDREN(dkp.d), MAX_LEAF_SIZE) # Auxiliary population
     elif struct == "NDList":
-        aux_pop = NDList(dkp.d)
+        aux_pop = NDList(dkp.d, points=[])
     while current_pop.get_pareto_front() != []:
+        size_of_p = len(current_pop.get_pareto_front())
         start_it = time.time()
         _current_pop = current_pop.get_pareto_front()
         for i, p in enumerate(_current_pop):
@@ -69,8 +69,8 @@ def PLS(dkp: DKP, m: int, verbose: int = 0, struct: str = "NDTree") -> List[DKPP
         if struct == "NDTree":
             aux_pop = NDTree(dkp.d, NUMBER_OF_CHILDREN(dkp.d), MAX_LEAF_SIZE)
         elif struct == "NDList":
-            aux_pop = NDList(dkp.d)
+            aux_pop = NDList(dkp.d, points=[])
         if verbose != 0:
-            print("Size of P:{}, iteration time: {:.2f} s, total time: {:.2f}".format(len(current_pop.get_pareto_front()), time.time()-start_it, time.time()-start))
+            print("Size of P: {}, iteration time: {:.2f}s, total time: {:.2f}s".format(size_of_p, time.time()-start_it, time.time()-start))
     return efficient_set_approx.get_pareto_front()
     

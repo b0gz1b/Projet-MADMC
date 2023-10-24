@@ -1,5 +1,6 @@
 import numpy as np
 from typing import List
+from uuid import uuid4
 
 class InvalidFileFormatError(Exception):
 	"""
@@ -73,18 +74,40 @@ class DKP:
 		f.close()
 		return cls(d, n, W, w, v)
 	
-	def subinstance(self, n: int) -> 'DKP':
+	def subinstance(self, n: int, d: int, save: str = "") -> 'DKP':
 		"""
-		Computes a subinstance of the dKP instance, with n items randomly selected.
+		Computes a subinstance of the dKP instance, with n items randomly selected for d randomly selected values.
 		:param n: the number of items of the subinstance
+		:param d: the dimension of the subinstance
+		:param save: the path to save the subinstance
 		:return: a subinstance of the dKP instance
 		"""
 		arr = np.arange(self.n)
 		np.random.shuffle(arr)
-		return DKP(self.d, n, self.W, self.w[arr[:n]], self.v[arr[:n]])
+		arr2 = np.arange(self.d)
+		np.random.shuffle(arr2)
+		new_w = self.w[arr[:n]]
+		sub = DKP(d, n, sum(new_w) // 2, new_w, self.v[arr[:n]][:, arr2[:d]])
+		if save != "":
+			with open(save + "/{}KP{}S{}KP{}-TA-{}.dat".format(d, n, self.d, self.n, uuid4()), "w") as f:
+				f.write("c Instance Type h\n")
+				f.write("c")
+				f.write("n {}\n".format(str(sub.n)))
+				f.write("c w")
+				for i in range(sub.d):
+					f.write(" v{}".format(i + 1))
+				f.write("\n")
+				for i in range(sub.n):
+					f.write("i {} ".format(str(sub.w[i])) + " ".join(map(str, sub.v[i])))
+					f.write("\n")
+				f.write("c\nc\n")
+				f.write("W {}\n".format(str(sub.W)))
+				f.write("c end of file")
+			f.close()
+		return sub
+
 	
 	def generate_random_solution(self) -> List[int]:
-		# TODO: Implémenter le sous ensemble comme dans l'énoncé en fait, pas à l'arrache
 		"""
 		Generates a random solution.
 		:return: a random solution

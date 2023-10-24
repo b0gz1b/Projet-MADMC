@@ -6,18 +6,23 @@ import time
 
 if __name__ == '__main__':
 	# Read the instance from a file
-	dkp = DKP.from_file("data/2KP200-TA-0.dat").subinstance(150)
-	# Print the instance
-	print(dkp)
+	dkp = DKP.from_file("data/2KP200-TA-0.dat")
 
-	m = 50
+	sub_dkp = dkp.subinstance(100, 3)
+
+	# Print the instance
+	print(sub_dkp)
+
+	m = 100
 
 	# Test the PLS algorithm
-	pop_in = P0(dkp, m=m, verbose = False)
+	pop_in = P0(sub_dkp, m=m, verbose = False)
 	print(pop_in.tree_form_representation())
-	start = time.time()
-	pls_res = PLS(dkp, m=m, verbose = 1, struct="NDTree")
-	end = time.time()
-	print("Size of the pareto front: {}".format(len(pls_res)))
-	assert NDList(dkp.d, pls_res).is_pareto_front()
-	print("Found in: {:.2f} s".format(end-start))
+	for struct in ["NDTree", "NDList"]:
+		start = time.time()
+		print("Using {}".format(struct))
+		pls_res = PLS(sub_dkp, m=m, verbose = 1, struct=struct, initial_pop=pop_in)
+		end = time.time()
+		print("Size of the pareto front: {}".format(len(pls_res)))
+		assert NDList(sub_dkp.d, pls_res).is_pareto_front()
+		print("Found in: {:.2f} s".format(end-start))
