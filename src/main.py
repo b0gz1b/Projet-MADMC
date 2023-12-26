@@ -3,12 +3,14 @@ from NDList import NDList
 from PLS import *
 import time
 
+N = 35
+D = 5
 
 if __name__ == '__main__':
 	# Read the instance from a file
 	dkp = DKP.from_file("data/2KP200-TA-0.dat")
 
-	sub_dkp = dkp.subinstance(100, 3)
+	sub_dkp = dkp.subinstance(N, D)
 
 	# Print the instance
 	print(sub_dkp)

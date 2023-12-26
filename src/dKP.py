@@ -149,7 +149,8 @@ class DPoint:
 		Constructor of the Point class.
 		:param value: the value of the point
 		"""
-		self.value = value
+		self.value = np.asarray(value)
+		self.dimension = len(value)
 	
 	def __str__(self) -> str:
 		"""
@@ -158,13 +159,44 @@ class DPoint:
 		"""
 		return str(self.value)
 	
-	def __eq__(self, __value: object) -> bool:
+	def __sub__(self, __value: 'DPoint') -> 'DPoint':
+		"""
+		Subtracts two points.
+		:param __value: the other point
+		:return: the difference between the two points
+		"""
+		return DPoint(self.value - __value.value)
+	
+	def __add__(self, __value: 'DPoint') -> 'DPoint':
+		"""
+		Adds two points.
+		:param __value: the other point
+		:return: the sum of the two points
+		"""
+		return DPoint(self.value + __value.value)
+	
+	def __mul__(self, __value: 'DPoint') -> 'DPoint':
+		"""
+		Multiplies two points.
+		:param __value: the other point
+		:return: the product of the two points
+		"""
+		return DPoint(self.value * __value.value)
+	
+	def __eq__(self, __value: 'DPoint') -> bool:
 		"""
 		Checks if the current point is equal to another point.
 		:param __value: the other point
 		:return: True if the current point is equal to the other point, False otherwise
 		"""
 		return np.all(self.value == __value.value)
+	
+	def __hash__(self) -> int:
+		"""
+		Computes the hash of the point.
+		:return: the hash of the point
+		"""
+		return hash(tuple(self.value))
 
 	def dominates(self, other: 'DPoint') -> bool:
 		"""
@@ -197,6 +229,41 @@ class DPoint:
 		:return: the average euclidean distance between the current point and a list of other points
 		"""
 		return np.mean([self.euclidean_distance(other) for other in others])
+	
+	def sum(self) -> float:
+		"""
+		Computes the sum of the values of the point.
+		:return: the sum of the values of the point
+		"""
+		return np.sum(self.value)
+	
+	def weighted_sum(self, weights: np.ndarray) -> float:
+		"""
+		Computes the weighted sum of the values of the point.
+		:param weights: the weights
+		:return: the weighted sum of the values of the point
+		"""
+		if len(weights) != len(self.value):
+			raise ValueError("The length of the weights vector should be equal to the length of the value vector.")
+		return np.dot(self.value, weights)
+	
+	def owa(self, weights: np.ndarray) -> float:
+		"""
+		Computes the ordered weighted average of the values of the point.
+		:param weights: the weights
+		:return: the ordered weighted average of the values of the point
+		"""
+		if len(weights) != len(self.value):
+			raise ValueError("The length of the weights vector should be equal to the length of the value vector.")
+		return np.dot(np.sort(self.value), weights)
+	
+	def choquet(self, capacity: np.ndarray) -> float:
+		"""
+		Computes the Choquet integral of the values of the point.
+		:param capacity: the capacity
+		:return: the Choquet integral of the values of the point
+		"""
+		raise NotImplementedError("Choquet integral is not implemented yet.")
 
 class DKPPoint(DPoint):
 	"""
