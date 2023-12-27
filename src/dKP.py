@@ -1,6 +1,8 @@
 import numpy as np
 from typing import List
 from uuid import uuid4
+import gurobipy as gp
+from gurobipy import GRB
 
 class InvalidFileFormatError(Exception):
 	"""
@@ -83,9 +85,9 @@ class DKP:
 		:return: a subinstance of the dKP instance
 		"""
 		arr = np.arange(self.n)
-		np.random.shuffle(arr)
+		# np.random.shuffle(arr)
 		arr2 = np.arange(self.d)
-		np.random.shuffle(arr2)
+		# np.random.shuffle(arr2)
 		new_w = self.w[arr[:n]]
 		sub = DKP(d, n, sum(new_w) // 2, new_w, self.v[arr[:n]][:, arr2[:d]])
 		if save != "":
@@ -138,6 +140,30 @@ class DKP:
 		:return: the performance ratio of all the items with respect to the ponderation vector q
 		"""
 		return np.dot(q, self.v.T) / self.w
+	
+	def opt(self, weights: List[float], env: gp.Env = None) -> tuple[float, List[int]]:
+		"""
+		Computes the optimal value of the problem.
+		:param weights: the weights
+		:return: the optimal value of the problem
+		"""
+		if env is None:
+			env = gp.Env(empty = True)
+			env.setParam('OutputFlag', 0)
+			env.start()
+		m = gp.Model("dKP", env=env)
+		x = m.addMVar(shape=self.n, vtype=GRB.BINARY, name="x")
+		# Set objective, maximize the value of the knapsack (sum of the values of the items in the knapsack) ponderated by the weights
+		obj = gp.LinExpr()
+		for i in range(self.n):
+			for j in range(self.d):
+				obj += self.v[i][j] * weights[j] * x[i]
+		m.setObjective(obj, GRB.MAXIMIZE)
+		m.addConstr(x @ self.w <= self.W, name="capacity_constraint")
+		m.update()
+		m.optimize()
+		return m.ObjVal, x.X
+		
 
 
 class DPoint:
