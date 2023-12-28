@@ -30,3 +30,10 @@ To run the program, simply execute the following command:
 ```bash
 python main.py
 ```
+
+## TODO
+
+- [ ] Fix choquet mr
+- [ ] Implement the second procedure
+- [ ] Automatic tests
+- [ ] Rapport

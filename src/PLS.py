@@ -1,7 +1,8 @@
 import time
 import numpy as np
 from typing import List
-from dKP import DKP, DKPPoint
+from DKP import DKP
+from DKPPoint import DKPPoint
 from NDTree import NDTree
 from NDList import NDList
 

@@ -1,6 +1,8 @@
 from typing import List
 import numpy as np
-from dKP import *
+from DKPPoint import DKPPoint
+from DPoint import DPoint
+
 
 class NDTreeNode:
 	"""

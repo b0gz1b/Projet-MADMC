@@ -1,5 +1,5 @@
 from typing import List
-from dKP import DKPPoint
+from DKPPoint import DKPPoint
 
 class NDList:
 	"""
