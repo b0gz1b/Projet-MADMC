@@ -1,3 +1,4 @@
+from copy import copy
 from Capacity import Capacity
 from DPoint import DPoint
 import numpy as np
@@ -167,6 +168,7 @@ def current_solution_strategy(X: list[DPoint], dm: [np.ndarray | Capacity], pref
     :param env: the Gurobi environment
     :return: the optimal solution according to the current solution strategy
     """
+    X = copy(X)
     if pref_model == "ws":
         ev = lambda x: x.weighted_sum(dm)
     elif pref_model == "owa":
