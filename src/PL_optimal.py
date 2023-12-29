@@ -87,3 +87,20 @@ def opt_choquet(dKP: DKP, cap: Capacity, env: gp.Env = None) -> tuple[float, lis
     m.optimize()
 
     return m.ObjVal, [s[i].X for i in range(dKP.n)]
+
+def opt_decision_maker(dKP: DKP, dm: list[float] | Capacity, pref_model: str = "ws", env: gp.Env = None) -> tuple[float, list[float]]:
+    """
+    Computes the optimal value of the problem.
+    :param dm: the weights or the capacity
+    :param pref_model: the preference model, either "ws", "owa" or "choquet"
+    :param env: the Gurobi environment
+    :return: the optimal value of the problem
+    """
+    if pref_model == "ws":
+        return opt_ws(dKP, dm, env)
+    elif pref_model == "owa":
+        return opt_owa(dKP, dm, env)
+    elif pref_model == "choquet":
+        return opt_choquet(dKP, dm, env)
+    else:
+        raise Exception("Unknown preference model: {}".format(pref_model))

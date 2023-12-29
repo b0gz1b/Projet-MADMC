@@ -33,7 +33,7 @@ python main.py
 
 ## TODO
 
-- [ ] Fix choquet mr
+- [x] Fix choquet mr
 - [ ] Implement the second procedure
 - [ ] Automatic tests
 - [ ] Rapport

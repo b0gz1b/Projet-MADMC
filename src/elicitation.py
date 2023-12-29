@@ -79,20 +79,15 @@ def pairwise_max_regret_choquet(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoin
     :return: the pairwise max regret according to the Choquet integral between two points
     """
     start = time.time()
-    x_bar = [0]
-    y_bar = [0]
     c_bar = [0]
     Pc_bar = [[0] for _ in range(len(P))]
     subsets = [set()]
     for size_B in range(1, x.dimension + 1):
-        for i, B in enumerate(combinations(range(x.dimension), size_B)):
+        for B in combinations(range(x.dimension), size_B):
             subsets.append(set(B))
-            x_bar.append(min(x.value[list(B)]))
-            y_bar.append(min(y.value[list(B)]))
-            c_bar.append(y_bar[i+1] - x_bar[i+1])
-
-            for j, (u, v) in enumerate(P):
-                Pc_bar[j].append(min(u.value[list(B)]) - min(v.value[list(B)]))
+            c_bar.append(min(y.value[list(B)]) - min(x.value[list(B)]))
+            for i, (u, v) in enumerate(P):
+                Pc_bar[i].append(min(u.value[list(B)]) - min(v.value[list(B)]))
 
     if env is None:
         env = gp.Env(empty = True)
@@ -102,17 +97,15 @@ def pairwise_max_regret_choquet(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoin
     w = m.addVars(len(subsets), lb=0, ub=1, vtype=GRB.CONTINUOUS, name="moebius_masses")
     m.update()
     m.setObjective(gp.quicksum(w[i] * c_bar[i] for i in range(len(subsets))), GRB.MAXIMIZE)
-    m.addConstr(gp.quicksum(w) == 1.0, name="sum_constraint")
+    m.addConstr(gp.quicksum(w[i] for i in range(len(subsets))) == 1.0, name="sum_constraint")
     m.addConstr(w[0] == 0.0, name="empty_set_constraint")
-    for index_subset, A in enumerate(subsets):
-        for i in A:
-            m.addConstr(gp.quicksum(w[index_subsubset] for index_subsubset, B in enumerate(subsets[:index_subset]) if B.issubset(A) and i in B) >= 0, name="monotonocity_constraints")         
     for pc_bar in Pc_bar:
         m.addConstr(gp.quicksum(w[i] * pc_bar[i] for i in range(len(subsets))) >= 0.0, name="preference_constraints")
 
     m.optimize()
 
     if m.status == GRB.INFEASIBLE:
+        print("Infeasible")
         return float("-inf"), None
     # print("Pairwise max regret weighted sum: {} in {}s".format(m.ObjVal, time.time()-start))
     return [w[i].x for i in range(len(subsets))], m.ObjVal
@@ -157,12 +150,12 @@ def minimax_regret(X: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", 
     i = 0
     for x in X:
         i += 1
-        print("Minimax regret {}: {}/{}".format(pref_model, i, len(X)), end="\r")
+        # print("Minimax regret {}: {}/{}".format(pref_model, i, len(X)), end="\r")
         _, mar = max_regret(x, X, P, pref_model, env)
         if mar < mmar:
             xmmar, mmar = x, mar
 
-    print('\nMMR: {}'.format(mmar))
+    # print('\nMMR: {}'.format(mmar))
     return xmmar, mmar
 
 def current_solution_strategy(X: list[DPoint], dm: [np.ndarray | Capacity], pref_model: str = "ws", env: gp.Env = None) -> tuple[DPoint, int, list[float]]:
@@ -187,7 +180,7 @@ def current_solution_strategy(X: list[DPoint], dm: [np.ndarray | Capacity], pref
     mmr_history = [mmr]
     while mmr > 0 and question_counter < MAX_QUESTIONS:
         question_counter += 1
-        print("Question {}: {} vs {}".format(question_counter, xp, yp))
+        # print("Question {}: {} vs {}".format(question_counter, xp, yp))
         if ev(xp) > ev(yp):
             P.append((xp, yp))
             X.remove(yp)

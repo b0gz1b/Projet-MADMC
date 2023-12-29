@@ -60,6 +60,23 @@ def generate_capacity_choquet(dim: int, num: int) -> list[Capacity]:
         res.append(Capacity(dim, d))
     return res
 
+def simulate_decision_makers(dim: int, num: int, pref_model: str = "ws") -> list[Capacity] | list[np.ndarray]:
+    """
+    Simulates a list of decision makers.
+    :param dim: the dimension of the capacities
+    :param num: the number of capacities
+    :param pref_model: the preference model, either "ws", "owa" or "choquet"
+    :return: a list of decision makers
+    """
+    if pref_model == "ws":
+        return generate_weights_ws(dim, num)
+    elif pref_model == "owa":
+        return generate_weights_owa(dim, num)
+    elif pref_model == "choquet":
+        return generate_convex_capacity_choquet(dim, num)
+    else:
+        raise Exception("Unknown preference model: {}".format(pref_model))
+
 if __name__ == '__main__':
     d = 3
     n = 1
