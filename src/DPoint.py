@@ -147,6 +147,22 @@ class DPoint:
 			X = set(arg_x_p[i:])
 			cv += (x_p[i] - x_p[i-1]) * cap.v(X)
 		return cv
+	
+	def evaluate(self, dm: Capacity | list[float], pref_model: str) -> float:
+		"""
+		Computes the value of the point according to a preference model.
+		:param dm: the decision maker, either the weights or the capacity
+		:param pref_model: the preference model, either "ws", "owa" or "choquet"
+		:return: the value of the point according to the preference model
+		"""
+		if pref_model == "ws":
+			return self.weighted_sum(dm)
+		elif pref_model == "owa":
+			return self.owa(dm)
+		elif pref_model == "choquet":
+			return self.choquet(dm)
+		else:
+			raise ValueError("Unknown preference model.")
 				
 		
 if __name__ == "__main__":

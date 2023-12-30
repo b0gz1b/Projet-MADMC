@@ -3,10 +3,11 @@ import gurobipy as gp
 from gurobipy import GRB
 from Capacity import Capacity
 from DKP import DKP
+from DKPPoint import DKPPoint
 
 M = 10000
 
-def opt_ws(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, list[float]]:
+def opt_ws(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, DKPPoint]:
     """
     Computes the optimal value of the problem with respect to the weighted sum.
     :param weights: the weights
@@ -27,9 +28,9 @@ def opt_ws(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, l
     m.addConstr(x @ dKP.w <= dKP.W, name="capacity_constraint")
     m.update()
     m.optimize()
-    return m.ObjVal, x.X
+    return m.ObjVal, DKPPoint(dKP, x.X)
 	
-def opt_owa(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, list[float]]:
+def opt_owa(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, DKPPoint]:
     """
     Computes the optimal value of the problem with respect to the ordered weighted average.
     :param weights: the weights
@@ -51,9 +52,9 @@ def opt_owa(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, 
     m.addConstrs((gp.quicksum(b[i,k] for i in range(dKP.d)) == k for k in range(dKP.d)), name="PI_constraints_2")
 
     m.optimize()
-    return m.ObjVal, [s[i].X for i in range(dKP.n)]
+    return m.ObjVal, DKPPoint(dKP, [s[i].X for i in range(dKP.n)])
 
-def opt_choquet(dKP: DKP, cap: Capacity, env: gp.Env = None) -> tuple[float, list[float]]:
+def opt_choquet(dKP: DKP, cap: Capacity, env: gp.Env = None) -> tuple[float, DKPPoint]:
     """
     Computes the optimal value of the problem with respect to the Choquet integral.
     :param cap: the capacity
@@ -86,9 +87,9 @@ def opt_choquet(dKP: DKP, cap: Capacity, env: gp.Env = None) -> tuple[float, lis
     
     m.optimize()
 
-    return m.ObjVal, [s[i].X for i in range(dKP.n)]
+    return m.ObjVal, DKPPoint(dKP, [s[i].X for i in range(dKP.n)])
 
-def opt_decision_maker(dKP: DKP, dm: list[float] | Capacity, pref_model: str = "ws", env: gp.Env = None) -> tuple[float, list[float]]:
+def opt_decision_maker(dKP: DKP, dm: list[float] | Capacity, pref_model: str = "ws", env: gp.Env = None) -> tuple[float, DKPPoint]:
     """
     Computes the optimal value of the problem.
     :param dm: the weights or the capacity

@@ -14,7 +14,7 @@ The project involves developing two procedures to solve the multi-objective knap
 
 ## Requirements
 
-- Python 3.x
+- Python 3.10 (or higher)
 - NumPy library (for handling arrays and numerical computations)
 
 You can install the NumPy library using pip:

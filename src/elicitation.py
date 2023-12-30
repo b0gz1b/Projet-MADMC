@@ -126,7 +126,6 @@ def max_regret(x: DPoint, Y: list[DPoint], P: np.ndarray = [], pref_model: str =
         i += 1
         if x == y:
             continue
-        # print("Max regret weighted sum: {}/{}".format(i, len(Y)))
         if pref_model == "ws":
             _, mar_ = pairwise_max_regret_ws(x, y, P, env)
         elif pref_model == "owa":
@@ -151,12 +150,12 @@ def minimax_regret(X: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", 
     i = 0
     for x in X:
         i += 1
-        # print("Minimax regret {}: {}/{}".format(pref_model, i, len(X)), end="\r")
+        # print("\t\t\tcomputing MMR {}: {}/{}".format(pref_model, i, len(X)), end="\r")
         _, mar = max_regret(x, X, P, pref_model, env)
         if mar < mmar:
             xmmar, mmar = x, mar
 
-    # print('\nMMR: {}'.format(mmar))
+    # print()
     return xmmar, mmar
 
 def current_solution_strategy(X: list[DPoint], dm: [np.ndarray | Capacity], pref_model: str = "ws", env: gp.Env = None) -> tuple[DPoint, int, list[float]]:
@@ -180,9 +179,10 @@ def current_solution_strategy(X: list[DPoint], dm: [np.ndarray | Capacity], pref
     xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
     yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
     mmr_history = [mmr]
+    print("\t\tMMR: {}".format(mmr))
     while mmr > 0 and question_counter < MAX_QUESTIONS:
         question_counter += 1
-        # print("Question {}: {} vs {}".format(question_counter, xp, yp))
+        print("\t\tQuestion {}: {} vs {}".format(question_counter, xp, yp))
         if ev(xp) > ev(yp):
             P.append((xp, yp))
             X.remove(yp)
@@ -193,5 +193,6 @@ def current_solution_strategy(X: list[DPoint], dm: [np.ndarray | Capacity], pref
         xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
         yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
         mmr_history.append(mmr)
+        print("\t\tMMR: {}".format(mmr))
 
     return xp, question_counter, mmr_history
