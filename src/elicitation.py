@@ -9,6 +9,9 @@ import time
 from itertools import combinations
 
 MAX_QUESTIONS = 1000
+ENV = gp.Env(empty = True)
+ENV.setParam('OutputFlag', 0)
+ENV.start()
 
 def pairwise_max_regret_ws(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoint]] = [], env: gp.Env = None) -> tuple[np.ndarray, float]:
     """
@@ -22,9 +25,7 @@ def pairwise_max_regret_ws(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoint]] =
     start = time.time()
     delta = (y - x).value
     if env is None:
-        env = gp.Env(empty = True)
-        env.setParam('OutputFlag', 0)
-        env.start()
+        env = ENV
     m = gp.Model("Pairwise max regret weighted sum", env=env)
     w = m.addVars(x.dimension, lb=0, ub=1, vtype=GRB.CONTINUOUS, name="w")
     m.update()
@@ -51,9 +52,7 @@ def pairwise_max_regret_owa(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoint]] 
     start = time.time()
     delta = np.sort(y.value) - np.sort(x.value)
     if env is None:
-        env = gp.Env(empty = True)
-        env.setParam('OutputFlag', 0)
-        env.start()
+        env = ENV
     m = gp.Model("Pairwise max owa", env=env)
     w = m.addVars(x.dimension, lb=0, ub=1, vtype=GRB.CONTINUOUS, name="w")
     m.update()
@@ -92,9 +91,7 @@ def pairwise_max_regret_choquet(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoin
                 Pc_bar[i].append(min(u.value[list(B)]) - min(v.value[list(B)]))
 
     if env is None:
-        env = gp.Env(empty = True)
-        env.setParam('OutputFlag', 0)
-        env.start()
+        env = ENV
     m = gp.Model("Pairwise max regret choquet", env=env)
     w = m.addVars(len(subsets), lb=0, ub=1, vtype=GRB.CONTINUOUS, name="moebius_masses")
     m.update()
@@ -139,8 +136,8 @@ def max_regret(x: DPoint, Y: list[DPoint], P: np.ndarray = [], pref_model: str =
     return xmr, mar
 
 def compute_max_regret(args):
-    x, X, P, pref_model, env = args
-    return x, max_regret(x, X, P, pref_model, env)
+    x, X, P, pref_model = args
+    return x, max_regret(x, X, P, pref_model)
 
 def minimax_regret(X: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", env: gp.Env = None) -> tuple[DPoint, float]:
     """
@@ -154,8 +151,8 @@ def minimax_regret(X: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", 
     num_processes = multiprocessing.cpu_count()
     i = 0
     with multiprocessing.Pool(processes=num_processes) as pool:
-        results = pool.map(compute_max_regret, [(x, X, P, pref_model, env) for x in X])
-    for x, mar in results:
+        results = pool.map(compute_max_regret, [(x, X, P, pref_model) for x in X])
+    for x, (sol, mar) in results:
         if mar < mmar:
             xmmar, mmar = x, mar
 
