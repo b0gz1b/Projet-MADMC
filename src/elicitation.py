@@ -1,4 +1,5 @@
 from copy import copy
+import multiprocessing
 from Capacity import Capacity
 from DPoint import DPoint
 import numpy as np
@@ -137,6 +138,9 @@ def max_regret(x: DPoint, Y: list[DPoint], P: np.ndarray = [], pref_model: str =
 
     return xmr, mar
 
+def compute_max_regret(args):
+    x, X, P, pref_model, env = args
+    return x, max_regret(x, X, P, pref_model, env)
 
 def minimax_regret(X: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", env: gp.Env = None) -> tuple[DPoint, float]:
     """
@@ -147,11 +151,11 @@ def minimax_regret(X: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", 
     :return: the minimax regret
     """
     xmmar, mmar = None, float("inf")
+    num_processes = multiprocessing.cpu_count()
     i = 0
-    for x in X:
-        i += 1
-        # print("\t\t\tcomputing MMR {}: {}/{}".format(pref_model, i, len(X)), end="\r")
-        _, mar = max_regret(x, X, P, pref_model, env)
+    with multiprocessing.Pool(processes=num_processes) as pool:
+        results = pool.map(compute_max_regret, [(x, X, P, pref_model, env) for x in X])
+    for x, mar in results:
         if mar < mmar:
             xmmar, mmar = x, mar
 
