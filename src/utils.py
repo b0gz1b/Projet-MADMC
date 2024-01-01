@@ -60,7 +60,7 @@ def generate_capacity_choquet(dim: int, num: int) -> list[Capacity]:
         res.append(Capacity(dim, d))
     return res
 
-def simulate_decision_makers(dim: int, num: int, pref_model: str = "ws") -> list[Capacity] | list[np.ndarray]:
+def simulate_decision_makers(dim: int, num: int, pref_model: str = "ws"):
     """
     Simulates a list of decision makers.
     :param dim: the dimension of the capacities

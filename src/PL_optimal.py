@@ -89,7 +89,7 @@ def opt_choquet(dKP: DKP, cap: Capacity, env: gp.Env = None) -> tuple[float, DKP
 
     return m.ObjVal, DKPPoint(dKP, [s[i].X for i in range(dKP.n)])
 
-def opt_decision_maker(dKP: DKP, dm: list[float] | Capacity, pref_model: str = "ws", env: gp.Env = None) -> tuple[float, DKPPoint]:
+def opt_decision_maker(dKP: DKP, dm, pref_model: str = "ws", env: gp.Env = None) -> tuple[float, DKPPoint]:
     """
     Computes the optimal value of the problem.
     :param dm: the weights or the capacity

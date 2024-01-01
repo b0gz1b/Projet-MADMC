@@ -148,7 +148,7 @@ class DPoint:
 			cv += (x_p[i] - x_p[i-1]) * cap.v(X)
 		return cv
 	
-	def evaluate(self, dm: Capacity | list[float], pref_model: str) -> float:
+	def evaluate(self, dm, pref_model: str) -> float:
 		"""
 		Computes the value of the point according to a preference model.
 		:param dm: the decision maker, either the weights or the capacity

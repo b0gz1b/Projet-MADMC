@@ -159,7 +159,7 @@ def minimax_regret(X: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", 
     # print()
     return xmmar, mmar
 
-def current_solution_strategy(X: list[DPoint], dm: [np.ndarray | Capacity], pref_model: str = "ws", env: gp.Env = None) -> tuple[DPoint, int, list[float]]:
+def current_solution_strategy(X: list[DPoint], dm, pref_model: str = "ws", env: gp.Env = None) -> tuple[DPoint, int, list[float]]:
     """
     Computes the optimal solution according to the current solution strategy.
     :param X: the set of points
