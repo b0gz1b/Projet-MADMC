@@ -1,5 +1,6 @@
 import numpy as np
 from Capacity import Capacity
+from typing import List
 
 class DPoint:
 	"""
@@ -90,7 +91,7 @@ class DPoint:
 		"""
 		return np.linalg.norm(self.value - other.value)
 	
-	def average_euclidean_distance(self, others: list['DPoint']) -> float:
+	def average_euclidean_distance(self, others: List['DPoint']) -> float:
 		"""
 		Computes the average euclidean distance between the current point and a list of other points.
 		:param others: the list of other points
@@ -148,7 +149,7 @@ class DPoint:
 			cv += (x_p[i] - x_p[i-1]) * cap.v(X)
 		return cv
 	
-	def evaluate(self, dm: Capacity | list[float], pref_model: str) -> float:
+	def evaluate(self, dm, pref_model: str) -> float:
 		"""
 		Computes the value of the point according to a preference model.
 		:param dm: the decision maker, either the weights or the capacity

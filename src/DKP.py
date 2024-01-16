@@ -1,5 +1,6 @@
 import numpy as np
 from uuid import uuid4
+from typing import List
 
 class DKP:
 	"""
@@ -100,7 +101,7 @@ class DKP:
 		return sub
 
 	
-	def generate_random_solution(self) -> list[int]:
+	def generate_random_solution(self) -> List[int]:
 		"""
 		Generates a random solution.
 		:return: a random solution
@@ -115,7 +116,7 @@ class DKP:
 				wTotal = wTotal + self.w[arr[i]]
 		return x
 	
-	def R_i(self, q: list[float], i: int) -> float:
+	def R_i(self, q: List[float], i: int) -> float:
 		"""
 		Computes the performance ratio of the item i with respect to the ponderation vector q.
 		:param q: the ponderation vector
@@ -124,13 +125,21 @@ class DKP:
 		"""
 		return np.dot(q, self.v[i]) / self.w[i]
 	
-	def R(self, q: list[float]) -> float:
+	def R(self, q: List[float]) -> float:
 		"""
 		Computes the performance ratio of all the items with respect to the ponderation vector q.
 		:param q: the ponderation vector
 		:return: the performance ratio of all the items with respect to the ponderation vector q
 		"""
 		return np.dot(q, self.v.T) / self.w
+
+	def arithmetic_mean(self) -> float:
+		"""
+		Computes the arithmetic mean of all the items.
+		:param q: the ponderation vector
+		:return: the arithmetic mean of all the items
+		"""
+		return 1/self.n * np.array([sum(self.v[i]) for i in range(self.n)])
 
 class InvalidFileFormatError(Exception):
 	def __init__(self) -> None:
