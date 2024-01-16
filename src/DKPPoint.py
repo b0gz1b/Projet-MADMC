@@ -1,12 +1,13 @@
 import numpy as np
 from DPoint import DPoint
 from DKP import DKP
+from typing import List
 
 class DKPPoint(DPoint):
 	"""
 	Point data structure for the dKP problem.
 	"""
-	def __init__(self, dkp: 'DKP', x: list[int] = [], weight: int = None, value: np.ndarray = None) -> None:
+	def __init__(self, dkp: 'DKP', x: List[int] = [], weight: int = None, value: np.ndarray = None) -> None:
 		"""
 		Constructor of the Point class.
 		:param dkp: the dKP instance
@@ -26,7 +27,7 @@ class DKPPoint(DPoint):
 		"""
 		return np.array2string(self.value)
 
-	def neighbors_one_one(self) -> list['DKPPoint']:
+	def neighbors_one_one(self) -> List['DKPPoint']:
 		"""
 		Computes the list of neighbors of the point that can be obtained by removing and adding one item from the knapsack.
 		:return: the list of neighbors of the point that can be obtained by removing and adding one item from the knapsack

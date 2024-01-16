@@ -7,13 +7,15 @@ import gurobipy as gp
 from gurobipy import GRB
 import time
 from itertools import combinations
+from typing import List
+from typing import Tuple
 
 MAX_QUESTIONS = 1000
 ENV = gp.Env(empty = True)
 ENV.setParam('OutputFlag', 0)
 ENV.start()
 
-def pairwise_max_regret_ws(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoint]] = [], env: gp.Env = None) -> tuple[np.ndarray, float]:
+def pairwise_max_regret_ws(x: DPoint, y: DPoint, P: List[Tuple[DPoint,DPoint]] = [], env: gp.Env = None) -> Tuple[np.ndarray, float]:
     """
     Computes the pairwise max regret according to the weighted sum between two points.
     :param x: the first point
@@ -40,7 +42,7 @@ def pairwise_max_regret_ws(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoint]] =
     # print("Pairwise max regret weighted sum: {} in {}s".format(m.ObjVal, time.time()-start))
     return [w[i].x for i in range(x.dimension)], m.ObjVal
 
-def pairwise_max_regret_owa(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoint]] = [], env: gp.Env = None) -> tuple[np.ndarray, float]:
+def pairwise_max_regret_owa(x: DPoint, y: DPoint, P: List[Tuple[DPoint,DPoint]] = [], env: gp.Env = None) -> Tuple[np.ndarray, float]:
     """
     Computes the pairwise max regret according to the ordered weighted average between two points.
     :param x: the first point
@@ -70,7 +72,7 @@ def pairwise_max_regret_owa(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoint]] 
     # print("Pairwise max regret weighted sum: {} in {}s".format(m.ObjVal, time.time()-start))
     return [w[i].x for i in range(x.dimension)], m.ObjVal
 
-def pairwise_max_regret_choquet(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoint]] = [], env: gp.Env = None) -> tuple[np.ndarray, float]:
+def pairwise_max_regret_choquet(x: DPoint, y: DPoint, P: List[Tuple[DPoint,DPoint]] = [], env: gp.Env = None) -> Tuple[np.ndarray, float]:
     """
     Computes the pairwise max regret according to the Choquet integral between two points.
     :param x: the first point
@@ -109,7 +111,7 @@ def pairwise_max_regret_choquet(x: DPoint, y: DPoint, P: list[tuple[DPoint,DPoin
     # print("Pairwise max regret weighted sum: {} in {}s".format(m.ObjVal, time.time()-start))
     return [w[i].x for i in range(len(subsets))], m.ObjVal
 
-def max_regret(x: DPoint, Y: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", env: gp.Env = None) -> tuple[DPoint, float]:
+def max_regret(x: DPoint, Y: List[DPoint], P: np.ndarray = [], pref_model: str = "ws", env: gp.Env = None) -> Tuple[DPoint, float]:
     """
     Computes the max regret.
     :param x: the point
@@ -139,7 +141,7 @@ def compute_max_regret(args):
     x, X, P, pref_model = args
     return x, max_regret(x, X, P, pref_model)
 
-def minimax_regret(X: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", env: gp.Env = None) -> tuple[DPoint, float]:
+def minimax_regret(X: List[DPoint], P: np.ndarray = [], pref_model: str = "ws", env: gp.Env = None) -> Tuple[DPoint, float]:
     """
     Computes the minimax regret.
     :param X: the set of points
@@ -159,7 +161,7 @@ def minimax_regret(X: list[DPoint], P: np.ndarray = [], pref_model: str = "ws", 
     # print()
     return xmmar, mmar
 
-def current_solution_strategy(X: list[DPoint], dm, pref_model: str = "ws", env: gp.Env = None) -> tuple[DPoint, int, list[float]]:
+def current_solution_strategy(X: List[DPoint], dm, pref_model: str = "ws", env: gp.Env = None) -> Tuple[DPoint, int, List[float]]:
     """
     Computes the optimal solution according to the current solution strategy.
     :param X: the set of points

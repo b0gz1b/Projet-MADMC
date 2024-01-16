@@ -1,5 +1,6 @@
 from DKP import DKP
 from PLS import *
+from RBLS import RBLS
 import elicitation as eli
 import utils as ut
 import PL_optimal as opt
@@ -7,9 +8,10 @@ import gurobipy as gp
 from time import time
 import matplotlib.pyplot as plt
 from copy import copy
+from typing import Dict
 
 class Results:
-    def __init__(self, pref_model: str, pareto_front_size: int):
+    def __init__(self, pref_model: str, pareto_front_size: int = 0):
         """
         Constructor of the Results class.
         :param pref_model: the preference model
@@ -42,7 +44,7 @@ class Experiment:
         self.sub_dkp = dkp.subinstance(number_of_items, dimension, shuffle=True)
         self.pref_models = ["ws", "owa", "choquet"]
 
-    def run_exp_first_procedure(self, size_pop_init: int, struct: str) -> dict[str, Results]:
+    def run_exp_first_procedure(self, size_pop_init: int, struct: str) -> Dict[str, Results]:
         """
         Runs the experiment for the first procedure.
         :param size_pop_init: the size of the initial population for the PLS algorithm
@@ -74,8 +76,37 @@ class Experiment:
                 res[pref_model].mmr_variations.append(mmr_hist)
 
         return res
+    
+    def run_exp_second_procedure(self) -> Dict[str, Results]:
+        """
+        Runs the experiment for the first procedure.
+        :param size_pop_init: the size of the initial population for the PLS algorithm
+        :param struct: the structure used for the PLS algorithm, either "NDTree" or "NDList"
+        :return: the results of the experiment
+        """
 
-    def plot_results_first_procedure(self, results: dict[str, Results], output_directory: str) -> None:
+        res = {pref_model: Results(pref_model) for pref_model in self.pref_models}
+
+        for pref_model in self.pref_models:
+            print("Preference model: {}".format(pref_model))
+            # Simulate decision makers
+            dms = ut.simulate_decision_makers(self.dimension, 
+                                            self.number_of_parameters_set, 
+                                            pref_model=pref_model)
+
+            for i, dm in enumerate(dms):
+                print("\tDecision maker: {}/{}".format(i+1, len(dms)))
+                start = time()
+                x, nb_questions, mmr_hist = RBLS(self.sub_dkp,  dm, pref_model=pref_model, env=self.env)
+                end = time()
+                res[pref_model].times.append(end - start)
+                res[pref_model].nb_questions.append(nb_questions)
+                res[pref_model].errors.append(opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model) - x.evaluate(dm, pref_model=pref_model))
+                res[pref_model].mmr_variations.append(mmr_hist)
+
+        return res
+
+    def plot_results_first_procedure(self, results: Dict[str, Results], output_directory: str) -> None:
         """
         Plots the results of the first procedure.
         :param results: the results of the first procedure

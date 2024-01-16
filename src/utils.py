@@ -1,8 +1,9 @@
 import numpy as np
 from itertools import combinations
 from Capacity import Capacity
+from typing import List
 
-def generate_weights_ws(dim: int, num: int) -> list[np.ndarray]:
+def generate_weights_ws(dim: int, num: int) -> List[np.ndarray]:
     """
     Generates a list of random weights, such that the sum of the weights is 1.
     :param dim: the dimension of the weights
@@ -11,7 +12,7 @@ def generate_weights_ws(dim: int, num: int) -> list[np.ndarray]:
     """
     return np.random.dirichlet(np.ones(dim), size=num)
 
-def generate_weights_owa(dim: int, num: int) -> list[np.ndarray]:
+def generate_weights_owa(dim: int, num: int) -> List[np.ndarray]:
     """
     Generates a list of random weights, such that the sum of the weights is 1 and the weights are in decreasing order.
     :param dim: the dimension of the weights
@@ -20,7 +21,7 @@ def generate_weights_owa(dim: int, num: int) -> list[np.ndarray]:
     """
     return np.flip(np.sort(np.random.dirichlet(np.ones(dim), size=num), axis=1), axis=1)
 
-def generate_convex_capacity_choquet(dim: int, num: int) -> list[Capacity]:
+def generate_convex_capacity_choquet(dim: int, num: int) -> List[Capacity]:
     """
     Generates a list of random supermodular capacities.
     :param dim: the dimension of the capacities
@@ -40,7 +41,7 @@ def generate_convex_capacity_choquet(dim: int, num: int) -> list[Capacity]:
         res.append(Capacity.from_moebius_inverse(dim, m))
     return res
 
-def generate_capacity_choquet(dim: int, num: int) -> list[Capacity]:
+def generate_capacity_choquet(dim: int, num: int) -> List[Capacity]:
     """
     Generates a list of random capacities.
     :param dim: the dimension of the capacities

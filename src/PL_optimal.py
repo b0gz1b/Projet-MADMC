@@ -4,10 +4,11 @@ from gurobipy import GRB
 from Capacity import Capacity
 from DKP import DKP
 from DKPPoint import DKPPoint
+from typing import List, Tuple
 
 M = 10000
 
-def opt_ws(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, DKPPoint]:
+def opt_ws(dKP: DKP, weights: List[float], env: gp.Env = None) -> Tuple[float, DKPPoint]:
     """
     Computes the optimal value of the problem with respect to the weighted sum.
     :param weights: the weights
@@ -30,7 +31,7 @@ def opt_ws(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, D
     m.optimize()
     return m.ObjVal, DKPPoint(dKP, x.X)
 	
-def opt_owa(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, DKPPoint]:
+def opt_owa(dKP: DKP, weights: List[float], env: gp.Env = None) -> Tuple[float, DKPPoint]:
     """
     Computes the optimal value of the problem with respect to the ordered weighted average.
     :param weights: the weights
@@ -54,7 +55,7 @@ def opt_owa(dKP: DKP, weights: list[float], env: gp.Env = None) -> tuple[float, 
     m.optimize()
     return m.ObjVal, DKPPoint(dKP, [s[i].X for i in range(dKP.n)])
 
-def opt_choquet(dKP: DKP, cap: Capacity, env: gp.Env = None) -> tuple[float, DKPPoint]:
+def opt_choquet(dKP: DKP, cap: Capacity, env: gp.Env = None) -> Tuple[float, DKPPoint]:
     """
     Computes the optimal value of the problem with respect to the Choquet integral.
     :param cap: the capacity
@@ -89,7 +90,7 @@ def opt_choquet(dKP: DKP, cap: Capacity, env: gp.Env = None) -> tuple[float, DKP
 
     return m.ObjVal, DKPPoint(dKP, [s[i].X for i in range(dKP.n)])
 
-def opt_decision_maker(dKP: DKP, dm, pref_model: str = "ws", env: gp.Env = None) -> tuple[float, DKPPoint]:
+def opt_decision_maker(dKP: DKP, dm, pref_model: str = "ws", env: gp.Env = None) -> Tuple[float, DKPPoint]:
     """
     Computes the optimal value of the problem.
     :param dm: the weights or the capacity

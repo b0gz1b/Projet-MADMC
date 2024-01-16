@@ -1,5 +1,6 @@
 import numpy as np
 from Capacity import Capacity
+from typing import List
 
 class DPoint:
 	"""
@@ -90,7 +91,7 @@ class DPoint:
 		"""
 		return np.linalg.norm(self.value - other.value)
 	
-	def average_euclidean_distance(self, others: list['DPoint']) -> float:
+	def average_euclidean_distance(self, others: List['DPoint']) -> float:
 		"""
 		Computes the average euclidean distance between the current point and a list of other points.
 		:param others: the list of other points
