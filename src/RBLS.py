@@ -46,6 +46,7 @@ def ComputeAllSwap(dkp : DKP, x : DKPPoint, verbose: bool = False) -> List[DKPPo
     :return: the pareto front
     """
     p0 = NDTree(dkp.d, NUMBER_OF_CHILDREN(dkp.d), MAX_LEAF_SIZE)
+    p0.update(x, verbose=verbose)
     neighbors = x.neighbors_one_one()
     for neighbor in neighbors:
         p0.update(DKPPoint(dkp, neighbor.x), verbose=verbose)
@@ -66,15 +67,15 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
     improve = True
     P = []
     
+    question_counter = 0
     while improve and (it < MAX_ITERATIONS):
         X = ComputeAllSwap(dkp, x)
-                              
+                         
         xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
         yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
         mmr_history = [mmr]
         print("\t\tMMR: {}".format(mmr))
-        
-        question_counter = 0
+        print(it)
         while mmr > 0  and question_counter < MAX_QUESTIONS:
             question_counter += 1
             print("\t\tQuestion {}: {} vs {}".format(question_counter, xp, yp))
@@ -84,6 +85,7 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
             else:
                 P.append((yp, xp))
                 X.remove(xp)
+            print(len(X))
             xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
             yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
             mmr_history.append(mmr)
@@ -98,10 +100,9 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
                 tmp_x.append(xmr)
                 tmp_mr.append(mar)
             x = tmp_x[np.argmin(tmp_mr)]
-            print(x)
             it += 1
         else:
             improve = False
-            
+    print(improve)      
     return x, question_counter, mmr_history
 

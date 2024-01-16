@@ -189,4 +189,87 @@ class Experiment:
             plt.ylabel("Minimax Regret (MMR)")
             plt.savefig(output_directory + "mmr_variations_{}_first_procedure.png".format(pref_model))
 
+    def plot_results_second_procedure(self, results: Dict[str, Results], output_directory: str) -> None:
+        """
+        Plots the results of the first procedure.
+        :param results: the results of the first procedure
+        :param output_directory: the output directory
+        """
+        # 3 pretty colors
+        cols = ["indigo", "tomato", "darkgreen"]
+
+        # Plot average time for each preference model on a bar chart
+        plt.figure()
+        plt.title("Time")
+        plt.bar(self.pref_models, [np.mean(results[pref_model].times) for pref_model in self.pref_models], color=cols)
+        plt.savefig(output_directory + "time_second_procedure.png")
+        with open(output_directory + "time_second_procedure.out", "w") as f:
+            f.write(" ".join(self.pref_models) + "\n")
+            for pref_model in self.pref_models:
+                f.write("{} ".format(np.mean(results[pref_model].times)))
+            f.write("\n")
+            for pref_model in self.pref_models:
+                f.write("{} ".format(np.std(results[pref_model].times)))
+            f.write("\n")
+
+
+        # Plot average number of questions for each preference model on a bar chart
+        plt.figure()
+        plt.title("Number of questions")
+        plt.bar(results.keys(), [np.mean(results[pref_model].nb_questions) for pref_model in results.keys()], color=cols)
+        plt.savefig(output_directory + "nb_questions_second_procedure.png")
+        with open(output_directory + "nb_questions_second_procedure.out", "w") as f:
+            f.write(" ".join(self.pref_models) + "\n")
+            for pref_model in self.pref_models:
+                f.write("{} ".format(np.mean(results[pref_model].nb_questions)))
+            f.write("\n")
+            for pref_model in self.pref_models:
+                f.write("{} ".format(np.std(results[pref_model].nb_questions)))
+            f.write("\n")
+
+
+        # Plot average error for each preference model on a bar chart
+        plt.figure()
+        plt.title("Error to optimal solution")
+        plt.bar(results.keys(), [np.mean(results[pref_model].errors) for pref_model in results.keys()], color=cols)
+        plt.savefig(output_directory + "error_second_procedure.png")
+        with open(output_directory + "error_second_procedure.out", "w") as f:
+            f.write(" ".join(self.pref_models) + "\n")
+            for pref_model in self.pref_models:
+                f.write("{} ".format(np.mean(results[pref_model].errors)))
+            f.write("\n")
+            for pref_model in self.pref_models:
+                f.write("{} ".format(np.std(results[pref_model].errors)))
+            f.write("\n")
+
+        # Graph average MMR variations for each preference model
+        plt.figure()
+        plt.title("MMR variations (averaged)")
+        plt.grid(zorder=0)
+        for pref_model, col in zip(results.keys(), cols):
+            # find the max number of questions
+            max_len = max([len(mmr_variations) for mmr_variations in results[pref_model].mmr_variations])
+            # compute average MMR for each number of questions
+            mmr_variations_points = np.zeros(max_len)
+            mmr_variations_points_count = np.zeros(max_len)
+            for mmr_variations in results[pref_model].mmr_variations:
+                mmr_variations_points[:len(mmr_variations)] += np.array(mmr_variations)
+                mmr_variations_points_count[:len(mmr_variations)] += 1
+            mmr_variations_points /= mmr_variations_points_count
+            plt.plot(range(max_len), mmr_variations_points, label=pref_model, color=col)
+        plt.xlabel("Number of questions")
+        plt.ylabel("Average Minimax Regret (MMR)")
+        plt.legend()
+        plt.savefig(output_directory + "mmr_variations_average_second_procedure.png")
+
+        for pref_model in results.keys():
+            plt.figure()
+            regrets = results[pref_model].mmr_variations
+            for mmrhist in regrets:
+                plt.plot(mmrhist, "o", alpha=0.3, linestyle="dashed")
+            plt.title("MMR variations for {}".format(pref_model))
+            plt.xlabel("Number of questions")
+            plt.ylabel("Minimax Regret (MMR)")
+            plt.savefig(output_directory + "mmr_variations_{}_second_procedure.png".format(pref_model))
+
     
