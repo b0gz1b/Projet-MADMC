@@ -15,13 +15,11 @@ The project involves developing two procedures to solve the multi-objective knap
 ## Requirements
 
 - Python 3.10 (or higher)
-- NumPy library (for handling arrays and numerical computations)
+- NumPy library
+- matplotlib library
+- gurobipy library
 
-You can install the NumPy library using pip:
-
-```bash
-pip install numpy
-```
+You can install the NumPy library using pip.
 
 ## Usage
 
@@ -30,10 +28,3 @@ To run the program, simply execute the following command:
 ```bash
 python main.py
 ```
-
-## TODO
-
-- [x] Fix choquet mr
-- [ ] Implement the second procedure
-- [ ] Automatic tests
-- [ ] Rapport
