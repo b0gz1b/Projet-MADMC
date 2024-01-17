@@ -72,14 +72,15 @@ class Experiment:
                 end = time()
                 res[pref_model].times.append(end - start)
                 res[pref_model].nb_questions.append(nb_questions)
-                res[pref_model].errors.append(opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model) - x.evaluate(dm, pref_model=pref_model))
+                opt_v = opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model)
+                res[pref_model].errors.append(opt_v - x.evaluate(dm, pref_model=pref_model) / opt_v)
                 res[pref_model].mmr_variations.append(mmr_hist)
 
         return res
     
     def run_exp_second_procedure(self) -> Dict[str, Results]:
         """
-        Runs the experiment for the first procedure.
+        Runs the experiment for the second procedure.
         :param size_pop_init: the size of the initial population for the PLS algorithm
         :param struct: the structure used for the PLS algorithm, either "NDTree" or "NDList"
         :return: the results of the experiment
@@ -101,7 +102,8 @@ class Experiment:
                 end = time()
                 res[pref_model].times.append(end - start)
                 res[pref_model].nb_questions.append(nb_questions)
-                res[pref_model].errors.append(opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model) - x.evaluate(dm, pref_model=pref_model))
+                opt_v = opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model)
+                res[pref_model].errors.append(opt_v - x.evaluate(dm, pref_model=pref_model) / opt_v)
                 res[pref_model].mmr_variations.append(mmr_hist)
 
         return res
@@ -147,7 +149,7 @@ class Experiment:
 
         # Plot average error for each preference model on a bar chart
         plt.figure()
-        plt.title("Error to optimal solution")
+        plt.title("Error to optimal solution (%)")
         plt.bar(results.keys(), [np.mean(results[pref_model].errors) for pref_model in results.keys()], color=cols)
         plt.savefig(output_directory + "error_first_procedure.png")
         with open(output_directory + "error_first_procedure.out", "w") as f:
@@ -230,7 +232,7 @@ class Experiment:
 
         # Plot average error for each preference model on a bar chart
         plt.figure()
-        plt.title("Error to optimal solution")
+        plt.title("Error to optimal solution (%)")
         plt.bar(results.keys(), [np.mean(results[pref_model].errors) for pref_model in results.keys()], color=cols)
         plt.savefig(output_directory + "error_second_procedure.png")
         with open(output_directory + "error_second_procedure.out", "w") as f:

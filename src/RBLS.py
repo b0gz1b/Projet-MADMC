@@ -2,11 +2,13 @@ import time
 import numpy as np
 import gurobipy as gp
 from NDTree import NDTree
+from PLS import PLS
 from DKP import DKP
 from DKPPoint import DKPPoint
-from NDList import NDList
+from utils import generate_weights_ws
+from PL_optimal import opt_ws
 from typing import List
-from elicitation import minimax_regret, max_regret
+from elicitation import minimax_regret, max_regret, current_solution_strategy
 
 
 
@@ -74,35 +76,37 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
         xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
         yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
         mmr_history = [mmr]
-        print("\t\tMMR: {}".format(mmr))
-        print(it)
         while mmr > 0  and question_counter < MAX_QUESTIONS:
             question_counter += 1
-            print("\t\tQuestion {}: {} vs {}".format(question_counter, xp, yp))
+            print("It {}\tQuestion {}: {} vs {}".format(it, question_counter, xp, yp))
             if ev(xp) > ev(yp):
                 P.append((xp, yp))
                 X.remove(yp)
             else:
                 P.append((yp, xp))
                 X.remove(xp)
-            print(len(X))
             xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
             yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
             mmr_history.append(mmr)
-            print("\t\tMMR: {}".format(mmr))
             
-        _, mr = max_regret(x, X, P, pref_model=pref_model, env=env)
-        if mr > 0:
-            tmp_x = []
-            tmp_mr = []
-            for sol in X:
-                xmr, mar = max_regret(sol, X, P, pref_model=pref_model, env=env)
-                tmp_x.append(xmr)
-                tmp_mr.append(mar)
-            x = tmp_x[np.argmin(tmp_mr)]
-            it += 1
-        else:
+        if x == xp:
             improve = False
-    print(improve)      
+        else:
+            x = xp
+            it += 1    
     return x, question_counter, mmr_history
 
+if __name__ == '__main__':
+    dkp = DKP.from_file("data/2KP200-TA-0.dat")
+    sdkp = dkp.subinstance(30, 4, shuffle=True)
+    dm = generate_weights_ws(sdkp.d, 1)[0]
+    x, question_counter, mmr_history = RBLS(sdkp, dm, pref_model="ws")
+    print(question_counter)
+    # calculate error to optimal solution in %
+    opt, _ = opt_ws(sdkp, dm)
+    print(("Error: {:.2f}%".format(((opt - x.weighted_sum(dm)) / opt) * 100)))
+    # compare the number of questions to the current solution strategy
+    xp, question_counter, mmr_history = current_solution_strategy(PLS(sdkp, 10), dm, pref_model="ws")
+    print(question_counter)
+    # calculate error to optimal solution in %
+    print(("Error: {:.2f}%".format(((opt - xp.weighted_sum(dm)) / opt) * 100)))
