@@ -72,8 +72,8 @@ class Experiment:
                 end = time()
                 res[pref_model].times.append(end - start)
                 res[pref_model].nb_questions.append(nb_questions)
-                opt_v = opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model)
-                res[pref_model].errors.append(opt_v - x.evaluate(dm, pref_model=pref_model) / opt_v)
+                optimal = opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model)
+                res[pref_model].errors.append( ((optimal - x.evaluate(dm, pref_model=pref_model))/optimal)*100)
                 res[pref_model].mmr_variations.append(mmr_hist)
 
         return res
@@ -102,8 +102,8 @@ class Experiment:
                 end = time()
                 res[pref_model].times.append(end - start)
                 res[pref_model].nb_questions.append(nb_questions)
-                opt_v = opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model)
-                res[pref_model].errors.append(opt_v - x.evaluate(dm, pref_model=pref_model) / opt_v)
+                optimal = opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model)
+                res[pref_model].errors.append( ((optimal - x.evaluate(dm, pref_model=pref_model))/optimal)*100)
                 res[pref_model].mmr_variations.append(mmr_hist)
 
         return res
@@ -336,9 +336,9 @@ class Experiment:
             regrets1 = results1[pref_model].mmr_variations
             regrets2 = results1[pref_model].mmr_variations
             for mmrhist in regrets1:
-                plt.plot(mmrhist, "o", alpha=0.3, label="P1", linestyle="dashed", color="red")
+                plt.plot(mmrhist, "o", alpha=0.3, label="P1", linestyle="dashed", color="indigo")
             for mmrhist in regrets2:
-                plt.plot(mmrhist, "o", alpha=0.3, label="P2", linestyle="dashed", color ="blue")
+                plt.plot(mmrhist, "o", alpha=0.3, label="P2", linestyle="dashed", color ="tomato")
             plt.title("MMR variations for {}".format(pref_model))
             plt.xlabel("Number of questions")
             plt.ylabel("Minimax Regret (MMR)")
