@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import gurobipy as gp
+import random
 from NDTree import NDTree
 from DKP import DKP
 from DKPPoint import DKPPoint
@@ -9,9 +10,8 @@ from typing import List
 from elicitation import minimax_regret, max_regret
 
 
-
 MAX_QUESTIONS = 100
-MAX_ITERATIONS = 10
+MAX_ITERATIONS = 20
 NUMBER_OF_CHILDREN = lambda d: d + 1
 MAX_LEAF_SIZE = 20
 
@@ -73,11 +73,12 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
                          
         xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
         yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
+        # _, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
         mmr_history = [mmr]
         print("\t\tMMR: {}".format(mmr))
-        print(it)
+        # print("it: "+str(it))
         while mmr > 0  and question_counter < MAX_QUESTIONS:
-            question_counter += 1
+            question_counter += 1            
             print("\t\tQuestion {}: {} vs {}".format(question_counter, xp, yp))
             if ev(xp) > ev(yp):
                 P.append((xp, yp))
@@ -85,24 +86,19 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
             else:
                 P.append((yp, xp))
                 X.remove(xp)
-            print(len(X))
+            # print("lenX: "+str(len(X)))
             xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
             yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
             mmr_history.append(mmr)
             print("\t\tMMR: {}".format(mmr))
             
         _, mr = max_regret(x, X, P, pref_model=pref_model, env=env)
+        # print("mr : "+str(mr))
         if mr > 0:
-            tmp_x = []
-            tmp_mr = []
-            for sol in X:
-                xmr, mar = max_regret(sol, X, P, pref_model=pref_model, env=env)
-                tmp_x.append(xmr)
-                tmp_mr.append(mar)
-            x = tmp_x[np.argmin(tmp_mr)]
+            xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
+            x = xp
             it += 1
         else:
             improve = False
-    print(improve)      
     return x, question_counter, mmr_history
 
