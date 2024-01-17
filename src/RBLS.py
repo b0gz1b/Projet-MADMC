@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import gurobipy as gp
+import random
 from NDTree import NDTree
 from PLS import PLS
 from DKP import DKP
@@ -8,12 +9,11 @@ from DKPPoint import DKPPoint
 from utils import generate_weights_ws
 from PL_optimal import opt_ws
 from typing import List
-from elicitation import minimax_regret, max_regret, current_solution_strategy
-
+from elicitation import current_solution_strategy, minimax_regret, max_regret
 
 
 MAX_QUESTIONS = 100
-MAX_ITERATIONS = 10
+MAX_ITERATIONS = 20
 NUMBER_OF_CHILDREN = lambda d: d + 1
 MAX_LEAF_SIZE = 20
 
@@ -75,6 +75,7 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
                          
         xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
         yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
+        # _, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
         mmr_history = [mmr]
         while mmr > 0  and question_counter < MAX_QUESTIONS:
             question_counter += 1
