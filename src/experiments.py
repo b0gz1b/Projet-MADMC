@@ -80,7 +80,7 @@ class Experiment:
     
     def run_exp_second_procedure(self) -> Dict[str, Results]:
         """
-        Runs the experiment for the second procedure.
+        Runs the experiment for the first procedure.
         :param size_pop_init: the size of the initial population for the PLS algorithm
         :param struct: the structure used for the PLS algorithm, either "NDTree" or "NDList"
         :return: the results of the experiment
@@ -108,6 +108,51 @@ class Experiment:
 
         return res
 
+    def run_exp_all_procedure(self, size_pop_init: int, struct: str) -> Dict[str, Results]:
+        """
+        Runs the experiment for the first procedure.
+        :param size_pop_init: the size of the initial population for the PLS algorithm
+        :param struct: the structure used for the PLS algorithm, either "NDTree" or "NDList"
+        :return: the results of the experiment
+        """
+
+        X = PLS(self.sub_dkp, size_pop_init, struct=struct)
+
+        size = len(X)
+        print("Size of the Pareto front: {}".format(size))
+        res1 = {pref_model: Results(pref_model, size) for pref_model in self.pref_models}
+        res2 = {pref_model: Results(pref_model) for pref_model in self.pref_models}
+
+        for pref_model in self.pref_models:
+            print("Preference model: {}".format(pref_model))
+            # Simulate decision makers
+            dms = ut.simulate_decision_makers(self.dimension, 
+                                            self.number_of_parameters_set, 
+                                            pref_model=pref_model)
+
+            for i, dm in enumerate(dms):
+                print("\tDecision maker P1: {}/{}".format(i+1, len(dms)))
+                start = time()
+                x, nb_questions, mmr_hist = eli.current_solution_strategy(copy(X), dm, pref_model=pref_model, env=self.env)
+                end = time()
+                res1[pref_model].times.append(end - start)
+                res1[pref_model].nb_questions.append(nb_questions)
+                optimal = opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model)
+                res1[pref_model].errors.append( ((optimal - x.evaluate(dm, pref_model=pref_model))/optimal)*100)
+                res1[pref_model].mmr_variations.append(mmr_hist)
+                
+                print("\tDecision maker P2: {}/{}".format(i+1, len(dms)))
+                start = time()
+                x, nb_questions, mmr_hist = RBLS(self.sub_dkp,  dm, pref_model=pref_model, env=self.env)
+                end = time()
+                res2[pref_model].times.append(end - start)
+                res2[pref_model].nb_questions.append(nb_questions)
+                optimal = opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model)
+                res2[pref_model].errors.append( ((optimal - x.evaluate(dm, pref_model=pref_model))/optimal)*100)
+                res2[pref_model].mmr_variations.append(mmr_hist)
+
+        return res1, res2
+    
     def plot_results_first_procedure(self, results: Dict[str, Results], output_directory: str) -> None:
         """
         Plots the results of the first procedure.
