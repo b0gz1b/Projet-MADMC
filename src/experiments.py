@@ -115,8 +115,9 @@ class Experiment:
         :param struct: the structure used for the PLS algorithm, either "NDTree" or "NDList"
         :return: the results of the experiment
         """
-
+        pls_time = time()
         X = PLS(self.sub_dkp, size_pop_init, struct=struct)
+        pls_time = time() - pls_time
 
         size = len(X)
         print("Size of the Pareto front: {}".format(size))
@@ -135,7 +136,7 @@ class Experiment:
                 start = time()
                 x, nb_questions, mmr_hist = eli.current_solution_strategy(copy(X), dm, pref_model=pref_model, env=self.env)
                 end = time()
-                res1[pref_model].times.append(end - start)
+                res1[pref_model].times.append(end - start + pls_time)
                 res1[pref_model].nb_questions.append(nb_questions)
                 optimal = opt.opt_decision_maker(self.sub_dkp, dm, pref_model=pref_model, env=self.env)[1].evaluate(dm, pref_model=pref_model)
                 res1[pref_model].errors.append( ((optimal - x.evaluate(dm, pref_model=pref_model))/optimal)*100)
