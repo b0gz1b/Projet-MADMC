@@ -16,7 +16,7 @@ NUMBER_OF_CHILDREN = lambda d: d + 1
 MAX_LEAF_SIZE = 20
 
 
-def ComputeInitSolution(dkp : DKP) -> DKPPoint:
+def computeInitSolution(dkp : DKP) -> DKPPoint:
     """
     Compute an initial solution for DKP (Greedy algorithm)
     :param dkp: the instance of the problem
@@ -37,7 +37,7 @@ def ComputeInitSolution(dkp : DKP) -> DKPPoint:
 
     return DKPPoint(dkp, solution, weight=solution_weight)
     
-def ComputeAllSwap(dkp : DKP, x : DKPPoint, verbose: bool = False) -> List[DKPPoint]:
+def computeAllSwap(dkp : DKP, x : DKPPoint, verbose: bool = False) -> List[DKPPoint]:
     """
     Compute all the neighnors (1-1) and any solution that is Pareto-dominated by another solution is removed 
     :param dkp: the instance of the problem
@@ -61,7 +61,7 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
     elif pref_model == "choquet":
         ev = lambda x: x.choquet(dm)
     
-    x = ComputeInitSolution(dkp)
+    x = computeInitSolution(dkp)
     
     it = 0
     improve = True
@@ -69,7 +69,7 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
     
     question_counter = 0
     while improve and (it < MAX_ITERATIONS):
-        X = ComputeAllSwap(dkp, x)
+        X = computeAllSwap(dkp, x)
                          
         xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
         yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
@@ -91,14 +91,13 @@ def RBLS(dkp : DKP, dm, pref_model :  str = "owa", env: gp.Env = None)-> NDTree:
             yp, _ = max_regret(xp, X, P, pref_model=pref_model, env=env)
             mmr_history.append(mmr)
             print("\t\tMMR: {}".format(mmr))
-            
-        _, mr = max_regret(x, X, P, pref_model=pref_model, env=env)
+
         # print("mr : "+str(mr))
-        if mr > 0:
-            xp, mmr = minimax_regret(X, P, pref_model=pref_model, env=env)
+        if x == xp:
+            improve = False
+        else:
             x = xp
             it += 1
-        else:
-            improve = False
+            
     return x, question_counter, mmr_history
 
