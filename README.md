@@ -28,3 +28,5 @@ To run the program, simply execute the following command:
 ```bash
 python main.py
 ```
+
+It can be modified to run any experiments implemented, in particular run_exp_first_procedure and run_exp_all_procedure.
